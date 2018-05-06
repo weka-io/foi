@@ -1,0 +1,19 @@
+{
+	"name": "fuci",
+	"authors": [
+		"Shachar Shemesh"
+	],
+	"dependencies": {
+		"mecca": "~>0.0.2"
+	},
+        "configurations": [
+            {
+                "name": "fucci-lib",
+                "targetType": "library",
+                "targetName": "fucci"
+            }
+        ],
+	"description": "Fiber Unaware Concurrent Invocation",
+	"copyright": "Copyright © 2018, Shachar Shemesh",
+	"license": "Boost"
+}
