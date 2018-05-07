@@ -1,6 +1,6 @@
 /.dub
 /docs.json
-/libfucci.a
+/libfoi.a
 /dub.selections.json
 __dummy.html
 *.o

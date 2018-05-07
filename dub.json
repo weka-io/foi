@@ -1,5 +1,5 @@
 {
-	"name": "fuci",
+	"name": "foi",
 	"authors": [
 		"Shachar Shemesh"
 	],
@@ -8,12 +8,12 @@
 	},
         "configurations": [
             {
-                "name": "fucci-lib",
+                "name": "foi-lib",
                 "targetType": "library",
-                "targetName": "fucci"
+                "targetName": "foi"
             }
         ],
-	"description": "Fiber Unaware Concurrent Invocation",
+	"description": "Fiber Oblivious Invocation",
 	"copyright": "Copyright © 2018, Shachar Shemesh",
 	"license": "Boost"
 }
