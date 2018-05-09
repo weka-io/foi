@@ -11,6 +11,12 @@
                 "name": "foi-lib",
                 "targetType": "library",
                 "targetName": "foi"
+            },
+            {
+                "name": "examples",
+                "targetType": "executable",
+                "mainSourceFile": "examples/photon.d",
+                "targetName": "examples/photon"
             }
         ],
 	"description": "Fiber Oblivious Invocation",
