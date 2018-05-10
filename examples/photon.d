@@ -3,7 +3,8 @@ import std.file : remove;
 
 import mecca.log;
 import mecca.reactor;
-import mecca.reactor.dmitry;
+
+import foi;
 
 // try your own urls
 immutable urls = [
@@ -31,6 +32,7 @@ int main(){
 void testMain() {
 	StopWatch sw;
 	sw.reset();
+        version(later) {
         INFO!"Starting sequential test"();
 	sw.start();
 	foreach(url; urls) {
@@ -44,6 +46,7 @@ void testMain() {
 	foreach(url; urls) {
 		remove(url.split('/').back);
 	}
+        }
 
         /+
 	sw.reset();
@@ -66,7 +69,7 @@ void testMain() {
         import mecca.reactor.sync.barrier;
         Barrier ending;
 	static void spawnDownload(Barrier* ending, string url, string file) {
-            dmitry!(download!())(url, file, AutoProtocol());
+            foiCall!(download!())(url, file, AutoProtocol());
             ending.markDone();
 	}
 
