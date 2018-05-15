@@ -6,14 +6,12 @@
  */
 module foi;
 
-import core.stdc.errno;
 import std.traits;
 
+import mecca.log;
 import mecca.lib.exception;
-import mecca.platform.linux;
-import mecca.reactor;
+import mecca.lib.typedid;
 import mecca.reactor.fls;
-import mecca.reactor.io.fd;
 
 /**
   Call oblivious function `F`.
@@ -28,68 +26,31 @@ template foiCall(alias F) {
     alias Args = Parameters!F;
 
     Ret foiCall( Args args ) {
-        ASSERT!"foiCall called on an already foi fiber"( !foiFiber );
+        FoiFiberState* state = &fiberState();
+        ASSERT!"foiCall called on an already foi fiber"( !state.foiFiber );
 
-        foiFiber = true;
-        scope(exit) foiFiber = false;
+
+        state.foiFiber = true;
+        scope(exit) state.foiFiber = false;
+        state.taskId = taskAllocator.getNext();
+        scope(exit) state.taskId = TaskId.invalid;
+
+        DEBUG!("Started FOI " ~ fullyQualifiedName!F ~" %s")(state.taskId);
+        scope(success) DEBUG!"Finished FOI %s"(state.taskId);
 
         return F(args);
     }
 }
 
-private:
-alias foiFiber = FiberLocal!(bool, "foiFiber", false);
+package:
+alias TaskId = TypedIdentifier!("TaskId", uint, uint.max, uint.max);
 
-struct FdState {
-    ReactorFD fd;
+struct FoiFiberState {
+    bool foiFiber;
+    bool inHandler;
+    TaskId taskId;
 }
 
-FdState[int] obliviousFds;
+alias fiberState = FiberLocal!(FoiFiberState, "foiFiberState");
 
-void registerFd(int fdNumber) {
-    ASSERT!"fd %s registered twice"(fdNumber !in obliviousFds, fdNumber);
-    auto fdState = &obliviousFds[fdNumber];
-    fdState.fd = ReactorFD(fdNumber);
-}
-
-bool deregisterFd(int fdNumber) {
-    auto fdState = fdNumber in obliviousFds;
-    if( fdState is null )
-        return false;
-
-    fdState.fd.close();
-    obliviousFds.remove(fdNumber);
-    return true;
-}
-
-extern(C) int socket(int domain, int type, int protocol) {
-    import std.stdio;
-    int ret = next_socket(domain, type, protocol);
-
-    if( isReactorThread && foiFiber && ret>=0 ) {
-        auto savedErrno = errno;
-        registerFd(ret);
-        errno = savedErrno;
-    }
-
-    return ret;
-}
-mixin InterceptCall!socket;
-
-extern(C) int close(int fd) {
-    if( !isReactorThread || !foiFiber ) {
-        return next_close(fd);
-    }
-
-    try {
-        if( !deregisterFd(fd) ) {
-            return next_close(fd);
-        }
-
-        return 0;
-    } catch(ErrnoException ex) {
-        errno = ex.errno;
-        return -1;
-    }
-}
-mixin InterceptCall!close;
+private TaskId.Allocator taskAllocator;
